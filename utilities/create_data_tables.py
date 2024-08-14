@@ -18,13 +18,9 @@ def process_reg_mat(reg_str, phospho, targets, cluster_mat, TF, candidates):
         reg_mat.sort_values(by='original.id', inplace=True)
         
         my_ids = reg_mat['original.id'].drop_duplicates().values
-        print(reg_mat['Protein'].values)
-        print(len(set(reg_mat['Protein'].values)))
-        my_proteins = reg_mat['Protein'].drop_duplicates().values
-        my_sites = reg_mat['Positions.within.proteins'].drop_duplicates().values
-        #print(len(my_ids))
-        #print(len(my_proteins))
-        #print(len(my_sites))
+        my_proteins = reg_mat.loc[~reg_mat['original.id'].duplicated(), 'Protein'].values
+        my_sites = reg_mat.loc[~reg_mat['original.id'].duplicated(), 'Positions.within.proteins'].values
+    
         my_names = []
         for i in range(len(my_proteins)):
             my_pro = my_proteins[i].split('.')[0]
