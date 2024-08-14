@@ -1,7 +1,4 @@
 
-
-
-
 #function to process regulator matrix
 #accounts for whether input data are phospho or protein
 process_reg_mat <- function(reg.str, phospho, targets, cluster.mat, TF, candidates){
