@@ -12,15 +12,14 @@ def process_reg_mat(reg_str, phospho, targets, cluster_mat, TF, candidates):
         # Merge multiplicities
         reg_mat_grouped = reg_mat.groupby('original.id').mean(numeric_only=True)
         my_data = reg_mat_grouped.filter(regex='JA|original.id')
-        
         # Get site information for each ID
-        reg_mat['original.id'] = reg_mat['original.id'].astype(float)
+        # reg_mat['original.id'] = reg_mat['original.id'].astype(float)  # not needed as it's already numeric
         reg_mat.sort_values(by='original.id', inplace=True)
         
         my_ids = reg_mat['original.id'].drop_duplicates().values
         my_proteins = reg_mat.loc[~reg_mat['original.id'].duplicated(), 'Protein'].values
         my_sites = reg_mat.loc[~reg_mat['original.id'].duplicated(), 'Positions.within.proteins'].values
-    
+
         my_names = []
         for i in range(len(my_proteins)):
             my_pro = my_proteins[i].split('.')[0]
@@ -29,21 +28,20 @@ def process_reg_mat(reg_str, phospho, targets, cluster_mat, TF, candidates):
             my_names.append([my_id, my_ids[i]])
         
         my_names_df = pd.DataFrame(my_names, columns=['Protein.Site', 'original.id'])
-        
         final_data = pd.merge(my_names_df, my_data, on='original.id', sort=False)
         
-        # # Collapse duplicate sites
-        # if final_data.duplicated('Protein.Site').any():
-        #     final_data_grouped = final_data.groupby('Protein.Site').mean()
-        #     my_pros = final_data_grouped.index
-        #     final_data = final_data_grouped.drop(columns=['original.id'])
-        #     final_data.index = my_pros
-        # else:
-        #     final_data.index = final_data['Majority.protein.IDs']
-        #     final_data.drop(columns=['original.id', 'Majority.protein.IDs'], inplace=True)
+        # Collapse duplicate sites
+        if final_data.duplicated('Protein.Site').any():
+            final_data_grouped = final_data.groupby('Protein.Site').mean()
+            my_pros = final_data_grouped.index
+            final_data = final_data_grouped.drop(columns=['original.id'])
+            final_data.index = my_pros
+        else:
+            final_data.index = final_data['Majority.protein.IDs']
+            final_data.drop(columns=['original.id', 'Majority.protein.IDs'], inplace=True)
         
-        # final_data = pd.DataFrame(scaler.fit_transform(final_data), index=final_data.index, columns=final_data.columns)
-        # final_data.to_csv('reg_mat_phospho.csv', na_rep='0')
+        final_data = pd.DataFrame(scaler.fit_transform(final_data), index=final_data.index, columns=final_data.columns)
+        final_data.to_csv('reg_mat_phospho.csv', na_rep='0')
         
         # TF_list = TF[TF.iloc[:, 0].isin(candidates.iloc[:, 0])]
         # my_genes = [gene for genes in final_data.index.str.split('.') for gene in genes if 'AT' in gene]
